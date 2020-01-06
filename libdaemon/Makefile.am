@@ -16,6 +16,10 @@
 # License along with libdaemon. If not, see
 # <http://www.gnu.org/licenses/>.
 
+VENDOR ?=community
+BUILD_INFO=\#\#1\#\# $(shell date +'%d %b %Y %H:%M:%S')     $(shell uname -n)
+BUILDLEVEL_INFO=@\#$(VENDOR):$(PACKAGE_VERSION)\#@$(BUILD_INFO)::::0::
+
 AM_CPPFLAGS='-DLOCALSTATEDIR="$(localstatedir)"'
 
 pkginclude_HEADERS = \
@@ -39,4 +43,5 @@ libdaemon_la_SOURCES = \
 	daemon.h \
 	$(pkg_include_HEADERS)
 
-libdaemon_la_LDFLAGS = -version-info $(LIBDAEMON_VERSION_INFO) $(LDFLAGS_NOUNDEFINED)
+libdaemon_la_LDFLAGS = -version-info $(LIBDAEMON_VERSION_INFO) $(LDFLAGS_NOUNDEFINED) \
+	  -buildlevel '$(BUILDLEVEL_INFO)'
