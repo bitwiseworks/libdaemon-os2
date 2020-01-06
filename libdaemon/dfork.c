@@ -235,10 +235,12 @@ pid_t daemon_fork(void) {
          * new process group for us and we will be the ledaer of
          * both. This should always succeed because we cannot be the
          * process group leader because we just forked. */
+#ifndef __OS2__
         if (setsid() < 0) {
             daemon_log(LOG_ERR, "setsid() failed: %s", strerror(errno));
             goto fail;
         }
+#endif
 
         umask(0077);
 
