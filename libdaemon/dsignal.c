@@ -33,6 +33,11 @@
 #include "dlog.h"
 #include "dnonblock.h"
 
+#ifdef __OS2__
+#include <sys/socket.h>
+# define pipe(A) socketpair(AF_UNIX, SOCK_STREAM, 0, A)
+#endif
+
 static int _signal_pipe[2] = { -1, -1 };
 
 static void _sigfunc(int s) {

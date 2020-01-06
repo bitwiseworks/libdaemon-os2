@@ -41,6 +41,11 @@
 #include "dfork.h"
 #include "dexec.h"
 
+#ifdef __OS2__
+#include <sys/socket.h>
+# define pipe(A) socketpair(AF_UNIX, SOCK_STREAM, 0, A)
+#endif
+
 #define MAX_ARGS 64
 
 int daemon_execv(const char *dir, int *ret, const char *prog, va_list ap) {

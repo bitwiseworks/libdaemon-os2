@@ -42,6 +42,11 @@
 #include "dnonblock.h"
 #include "dlog.h"
 
+#ifdef __OS2__
+#include <sys/socket.h>
+# define pipe(A) socketpair(AF_UNIX, SOCK_STREAM, 0, A)
+#endif
+
 #if defined(_NSIG) /* On glibc NSIG does not count RT signals */
 # define SIGNAL_UPPER_BOUND _NSIG
 #elif defined(NSIG) /* Solaris defines just this */
