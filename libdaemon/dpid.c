@@ -36,6 +36,9 @@
 #include <fcntl.h>
 #include <stddef.h>
 #include <sys/time.h>
+#ifdef __OS2__
+#include <stdbool.h>
+#endif
 
 #include "dpid.h"
 #include "dlog.h"
@@ -99,6 +102,9 @@ pid_t daemon_pid_file_is_running(void) {
     ssize_t l;
     long lpid;
     char *e = NULL;
+#ifdef __OS2__
+    bool remove_file = false;
+#endif
 
     if (!(fn = daemon_pid_file_proc())) {
         errno = EINVAL;
@@ -120,7 +126,11 @@ pid_t daemon_pid_file_is_running(void) {
     if ((l = read(fd, txt, sizeof(txt)-1)) < 0) {
         int saved_errno = errno;
         daemon_log(LOG_WARNING, "read(): %s", strerror(errno));
+#ifdef __OS2__
+        remove_file = true;
+#else
         unlink(fn);
+#endif
         errno = saved_errno;
         goto finish;
     }
@@ -134,7 +144,11 @@ pid_t daemon_pid_file_is_running(void) {
 
     if (errno != 0 || !e || *e || (long) pid != lpid) {
         daemon_log(LOG_WARNING, "PID file corrupt, removing. (%s)", fn);
+#ifdef __OS2__
+        remove_file = true;
+#else
         unlink(fn);
+#endif
         errno = EINVAL;
         goto finish;
     }
@@ -142,7 +156,11 @@ pid_t daemon_pid_file_is_running(void) {
     if (kill(pid, 0) != 0 && errno != EPERM) {
         int saved_errno = errno;
         daemon_log(LOG_WARNING, "Process %lu died: %s; trying to remove PID file. (%s)", (unsigned long) pid, strerror(errno), fn);
+#ifdef __OS2__
+        remove_file = true;
+#else
         unlink(fn);
+#endif
         errno = saved_errno;
         goto finish;
     }
@@ -156,6 +174,10 @@ finish:
         if (locked >= 0)
             lock_file(fd, 0);
         close(fd);
+#ifdef __OS2__
+        if (remove_file)
+           unlink(fn);
+#endif
         errno = saved_errno;
     }
 
@@ -214,6 +236,9 @@ int daemon_pid_file_create(void) {
     char t[64];
     ssize_t l;
     mode_t u;
+#ifdef __OS2__
+    bool remove_file = false;
+#endif
 
     u = umask(022);
 
@@ -229,7 +254,11 @@ int daemon_pid_file_create(void) {
 
     if ((locked = lock_file(fd, 1)) < 0) {
         int saved_errno = errno;
+#ifdef __OS2__
+        remove_file = true;
+#else
         unlink(fn);
+#endif
         errno = saved_errno;
         goto finish;
     }
@@ -240,7 +269,11 @@ int daemon_pid_file_create(void) {
     if (write(fd, t, l) != l) {
         int saved_errno = errno;
         daemon_log(LOG_WARNING, "write(): %s", strerror(errno));
+#ifdef __OS2__
+        remove_file = true;
+#else
         unlink(fn);
+#endif
         errno = saved_errno;
         goto finish;
     }
@@ -256,6 +289,10 @@ finish:
             lock_file(fd, 0);
 
         close(fd);
+#ifdef __OS2__
+        if (remove_file)
+           unlink(fn);
+#endif
         errno = saved_errno;
     }
 
